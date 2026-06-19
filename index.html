@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ZSTD Base64 Decryptor</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; max-width: 800px; margin: 0 auto; color: #333; }
+        textarea { width: 100%; height: 150px; margin-bottom: 10px; padding: 10px; border: 1px solid #ccc; border-radius: 4px; font-family: monospace; font-size: 14px;}
+        button { padding: 10px 20px; background: #2ea44f; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 16px; font-weight: 600;}
+        button:hover { background: #2c974b; }
+        pre { background: #f6f8fa; padding: 15px; overflow-x: auto; min-height: 100px; border: 1px solid #d0d7de; border-radius: 6px; white-space: pre-wrap; word-wrap: break-word;}
+    </style>
+    <!-- Import fzstd directly from a CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/fzstd@0.1.1/umd/index.js"></script>
+</head>
+<body>
+
+    <h2>ZSTD Base64 Decryptor</h2>
+    
+    <label for="inputBox">Paste your Base64 encoded ZSTD string here:</label>
+    <br><br>
+    <textarea id="inputBox" placeholder="KLUv/WBnoRUBA..."></textarea>
+    
+    <button onclick="decodeText()">Decrypt</button>
+
+    <h3>Result:</h3>
+    <pre id="outputBox"></pre>
+
+    <script>
+        function decodeText() {
+            const input = document.getElementById('inputBox').value.trim();
+            const outputBox = document.getElementById('outputBox');
+            
+            if (!input) {
+                outputBox.textContent = "Please enter a string.";
+                return;
+            }
+
+            try {
+                // 1. Convert Base64 to Uint8Array
+                const binaryString = window.atob(input);
+                const bytes = new Uint8Array(binaryString.length);
+                for (let i = 0; i < binaryString.length; i++) {
+                    bytes[i] = binaryString.charCodeAt(i);
+                }
+
+                // 2. Decompress using fzstd
+                const decompressedBytes = fzstd.decompress(bytes);
+
+                // 3. Convert back to string
+                const resultString = new TextDecoder('utf-8').decode(decompressedBytes);
+                
+                // Format if it's JSON, otherwise just show text
+                try {
+                    const json = JSON.parse(resultString);
+                    outputBox.textContent = JSON.stringify(json, null, 2);
+                } catch {
+                    outputBox.textContent = resultString;
+                }
+            } catch (error) {
+                outputBox.textContent = "Error decrypting. Ensure the string is a valid ZSTD compressed base64 string.\n\nDetails: " + error.message;
+            }
+        }
+    </script>
+</body>
+</html>
