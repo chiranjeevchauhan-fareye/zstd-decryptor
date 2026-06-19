@@ -24,13 +24,33 @@
     
     <button onclick="decodeText()">Decrypt</button>
 
-    <h3>Result:</h3>
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+        <h3>Result:</h3>
+        <button id="copyBtn" onclick="copyResult()" style="background: #0969da; padding: 5px 15px; font-size: 14px; display: none;">Copy JSON</button>
+    </div>
     <pre id="outputBox"></pre>
 
     <script>
+        function copyResult() {
+            const textToCopy = document.getElementById('outputBox').textContent;
+            if (!textToCopy || textToCopy.startsWith("Error") || textToCopy.startsWith("Please enter")) return;
+
+            navigator.clipboard.writeText(textToCopy).then(() => {
+                const copyBtn = document.getElementById('copyBtn');
+                const originalText = copyBtn.textContent;
+                copyBtn.textContent = "Copied!";
+                setTimeout(() => copyBtn.textContent = originalText, 2000);
+            }).catch(err => {
+                alert('Failed to copy: ' + err);
+            });
+        }
+
         function decodeText() {
             const input = document.getElementById('inputBox').value.trim();
             const outputBox = document.getElementById('outputBox');
+            const copyBtn = document.getElementById('copyBtn');
+            
+            copyBtn.style.display = 'none';
             
             if (!input) {
                 outputBox.textContent = "Please enter a string.";
@@ -58,6 +78,7 @@
                 } catch {
                     outputBox.textContent = resultString;
                 }
+                copyBtn.style.display = 'block';
             } catch (error) {
                 outputBox.textContent = "Error decrypting. Ensure the string is a valid ZSTD compressed base64 string.\n\nDetails: " + error.message;
             }
